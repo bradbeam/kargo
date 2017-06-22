@@ -1,30 +1,23 @@
 ---
-#- include: sync_etcd_master_certs.yml
-#  when: inventory_hostname in groups['etcd']
-#  tags: etcd-secrets
-
-#- include: sync_etcd_node_certs.yml
-#  when: inventory_hostname in etcd_node_cert_hosts
-#  tags: etcd-secrets
 - name: gen_certs_vault | Create list of master certs
   set_fact: 
     etcd_master_cert_list: 
       - "{{ etcd_cert_dir }}/admin-{{ inventory_hostname }}.pem"
       - "{{ etcd_cert_dir }}/member-{{ inventory_hostname }}.pem"
+    etcd_node_cert_list:
+      - "{{ etcd_cert_dir }}/node-{{ inventory_hostname }}.pem"
 
-#- name: gen_certs_vault | Test if certificate exists
-#  stat:
-#    path: "{{ item }}"
-#  with_items: "{{ etcd_master_cert_list }}"
-#  register: etcd_cert_files
-
-- name: gen_certs_vault | Test if certificate is expired or will expire in 1h
+- name: gen_certs_vault | Test if master certificate is expired or will expire in 1h
   command: "openssl x509 -checkend 3600 -noout -in {{ item }}"
   ignore_errors: True
-  register: generate_certs
+  register: generate_master_certs
   with_items: "{{ etcd_master_cert_list }}"
 
-#- name: gen_certs_vault | Create list of master certs to create
+- name: gen_certs_vault | Test if node certificate is expired or will expire in 1h
+  command: "openssl x509 -checkend 3600 -noout -in {{ item }}"
+  ignore_errors: True
+  register: generate_node_certs
+  with_items: "{{ etcd_node_cert_list }}"
 
 - name: gen_certs_vault | Read in the local credentials
   slurp: 
@@ -60,48 +53,34 @@
         X-Vault-Token: "{{ vault_client_token }}"
   when: vault_client_token != ""
 
-- name: derr
-  debug:
-    msg: "{{ generate_certs }}"
-
-# Issue master certs to Etcd nodes
 - include: ../../vault/tasks/shared/issue_cert.yml
   vars:
-    issue_cert_alt_names: "[ {{ inventory_hostname }}, 'localhost' ]"
+    issue_cert_alt_names: [ "{{ inventory_hostname }}", 'localhost' ]
     issue_cert_copy_ca: "false"
     issue_cert_file_group: "{{ etcd_cert_group }}"
     issue_cert_file_owner: kube
     issue_cert_headers: "{{ etcd_vault_headers }}"
     issue_cert_hosts: "{{ inventory_hostname  }}"
-    issue_cert_ip_sans: [ "{{ ansible_default_ipv4['address'] }}", "127.0.0.1","::1" ]
+    issue_cert_ip_sans: [ "{{ ansible_default_ipv4.address }}", "127.0.0.1","::1" ]
     issue_cert_path: "{{ item['item'] }}"
     issue_cert_role: etcd
     issue_cert_url: "{{ hostvars[groups.vault|first]['vault_leader_url'] }}"
-  with_items: "{{ generate_certs['results'] }}"
+  with_items: "{{ generate_master_certs['results'] }}"
   when: inventory_hostname in groups['etcd'] and item['rc'] == 1
   notify: set etcd_secret_changed
 
-# Issue node certs to everyone else
-#- include: ../../vault/tasks/shared/issue_cert.yml
-#  vars:
-#    issue_cert_alt_names: "{{ etcd_node_cert_hosts }}"
-#    issue_cert_copy_ca: "{{ item == etcd_node_certs_needed|first }}"
-#    issue_cert_file_group: "{{ etcd_cert_group }}"
-#    issue_cert_file_owner: kube
-#    issue_cert_headers: "{{ etcd_vault_headers }}"
-#    issue_cert_hosts: "{{ etcd_node_cert_hosts }}"
-#    issue_cert_ip_sans: >-
-#        [
-#        {%- for host in etcd_node_cert_hosts -%}
-#        "{{ hostvars[host]['ansible_default_ipv4']['address'] }}",
-#        {%- endfor -%}
-#        "127.0.0.1","::1"
-#        ]
-#    issue_cert_path: "{{ item }}"
-#    issue_cert_role: etcd
-#    issue_cert_url: "{{ hostvars[groups.vault|first]['vault_leader_url'] }}"
-#  with_items: "{{ etcd_node_certs_needed|d([]) }}"
-#  when: inventory_hostname in etcd_node_cert_hosts
-#  notify: set etcd_secret_changed
-
-
+- include: ../../vault/tasks/shared/issue_cert.yml
+  vars:
+    issue_cert_alt_names: [ "{{ inventory_hostname }}", 'localhost' ]
+    issue_cert_copy_ca: "false"
+    issue_cert_file_group: "{{ etcd_cert_group }}"
+    issue_cert_file_owner: kube
+    issue_cert_headers: "{{ etcd_vault_headers }}"
+    issue_cert_hosts: "{{ inventory_hostname  }}"
+    issue_cert_ip_sans: [ "{{ ansible_default_ipv4.address }}", "127.0.0.1","::1" ]
+    issue_cert_path: "{{ item['item'] }}"
+    issue_cert_role: etcd
+    issue_cert_url: "{{ hostvars[groups.vault|first]['vault_leader_url'] }}"
+  with_items: "{{ generate_node_certs['results'] }}"
+  when: item['rc'] == 1
+  notify: set etcd_secret_changed
