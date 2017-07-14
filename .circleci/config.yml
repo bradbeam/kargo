@@ -48,9 +48,22 @@ jobs:
       - run:
           name: pwd + ls
           command: pwd && ls -la
+      - run:
+          name: Save workspace
+          persist_to_workspace:
+            root: .
+            paths:
+              - ~
   ansible_dry_run:
     <<: *defaults
     steps:
+      - run:
+          name: pwd + ls
+          command: pwd && ls -la
+      - run:
+        name: Restore workspace
+        attach_workspace:
+          at: ~
       - run:
           name: pwd + ls
           command: pwd && ls -la
