@@ -61,9 +61,9 @@ jobs:
           name: pwd + ls
           command: pwd && ls -la
       - run:
-        name: Restore workspace
-        attach_workspace:
-          at: ~
+          name: Restore workspace
+          attach_workspace:
+            at: ~
       - run:
           name: pwd + ls
           command: pwd && ls -la
