@@ -42,7 +42,7 @@ jobs:
       - checkout
       - run:
           name: Generate temporary ssh keypair
-          command: ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_ci
+          command: ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa_ci
       #- echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
       #- echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
       #- echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
