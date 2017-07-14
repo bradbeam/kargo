@@ -123,8 +123,20 @@ jobs:
   #     ETCD_DEPLOYMENT: rkt
   #     KUBELET_DEPLOYMENT: rkt
   #     STARTUP_SCRIPT: ""
+  ansible_dry_run:
+    <<: *defaults
+    steps:
+      - run:
+          name: Create dummy inventory file
+          command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
+      - run:
+          name: Ansible syntax check
+          command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts ./cluster.yml
 workflows:
   version: 2
   build_openstack_and_test:
     jobs:
       - build
+      - ansible_dry_run:
+          requires:
+            - build
