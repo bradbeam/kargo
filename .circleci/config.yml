@@ -33,7 +33,7 @@ version: 2
 jobs:
   build:
     <<: *defaults
-    steps:
+    steps: []
   setup_environment:
     <<: *defaults
     steps:
