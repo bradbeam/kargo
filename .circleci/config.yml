@@ -45,9 +45,15 @@ jobs:
           command: |
             curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
             unzip terraform_0.9.11_linux_amd64.zip
+      - run:
+          name: pwd + ls
+          command: pwd && ls -la
   ansible_dry_run:
     <<: *defaults
     steps:
+      - run:
+          name: pwd + ls
+          command: pwd && ls -la
       - run:
           name: Create dummy inventory file
           command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
