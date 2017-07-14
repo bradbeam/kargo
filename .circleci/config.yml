@@ -115,9 +115,8 @@ jobs:
       STARTUP_SCRIPT: ""
 workflows:
   version: 2
-    build_openstack_and_test:
-      jobs:
-        - build
-        - create-openstack
-        - ansible
-        - destroy-openstack
+  build_openstack_and_test:
+    jobs:
+      - create-openstack
+      - ansible
+      - destroy-openstack
