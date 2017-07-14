@@ -31,9 +31,6 @@ defaults: &defaults
 
 version: 2
 jobs:
-  build:
-    <<: *defaults
-    steps: []
   setup_environment:
     <<: *defaults
     steps:
