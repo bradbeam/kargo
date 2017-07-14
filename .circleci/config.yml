@@ -55,25 +55,54 @@ jobs:
   ansible_dry_run:
     <<: *defaults
     steps:
-      - run:
-          name: pwd + ls
-          command: pwd && ls -la
       - attach_workspace:
           at: /root
-      - run:
-          name: pwd + ls
-          command: pwd && ls -la
       - run:
           name: Create dummy inventory file
           command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
       - run:
           name: Ansible syntax check
-          command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts ./cluster.yml
-      # - persist_to_workspace:
-      #   root: /tmp/workspace
-      #   paths:
-      #     - $HOME
-      #     -
+          command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts cluster.yml
+  create-openstack:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: /root
+      - run:
+          name: Provision environment on openstack
+          command: >
+            ./terraform apply
+            -state=contrib/terraform/openstack/terraform.tfstate
+            -var 'number_of_k8s_masters="0"'
+            -var 'number_of_k8s_masters_no_floating_ip="3"'
+            -var 'number_of_k8s_nodes_no_floating_ip="2"'
+            -var 'number_of_k8s_nodes="0"'
+            -var 'image="ubuntu-xenial"'
+            -var 'flavor_k8s_master="ea762e25-7320-484d-b95d-747a1373c791"'
+            -var 'flavor_k8s_node="ea762e25-7320-484d-b95d-747a1373c791"'
+            -var 'flavor_bastion="ea762e25-7320-484d-b95d-747a1373c791"'
+            -var 'floatingip_pool="Public"'
+            -var 'external_net="113d4b08-0fc4-478c-9eae-4ecfb086e3f4"'
+            -var 'cluster_name="ci"'
+            contrib/terraform/openstack
+      - persist_to_workspace:
+          root: /root
+          paths:
+            - .
+      - run:
+          name: Wait for apt-get update to run
+          command: sleep 60
+  destroy-openstack:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: /root
+      - run:
+          name: Provision environment on openstack
+          command: >
+            ./terraform destroy
+            --force
+            -state=contrib/terraform/openstack/terraform.tfstate
   # create-gce:
   #     working_directory: ~/kargo
   #     steps:
@@ -91,18 +120,7 @@ jobs:
   #         -e mode=${CLUSTER_MODE}
   #         -e test_id=${TEST_ID}
   #         -e startup_script="'${STARTUP_SCRIPT}'"
-  # create-openstack:
-  #   steps:
-  #     - run:
-  #         name: Provision environment on openstack
-  #         command: >
-  #           ./terraform apply
-  #           -state=contrib/terraform/openstack/terraform.tfstate
-  #           -var-file=contrib/terraform/openstack/kargo.tfvars
-  #           contrib/terraform/openstack
-  #     - run:
-  #         name: Wait for apt-get update to run
-  #         command: sleep 60
+
   # ansible:
   #   steps:
   #     - run:
@@ -156,3 +174,9 @@ workflows:
       - ansible_dry_run:
           requires:
             - build
+      - create-openstack:
+          requires:
+            - ansible_dry_run
+      - destroy-openstack:
+          requires:
+            - create-openstack
