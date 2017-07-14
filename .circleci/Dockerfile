@@ -3,6 +3,7 @@ FROM alpine:3.6
 COPY requirements.txt /requirements.txt
 
 RUN apk add --no-cache bash \
+                       curl \
                        gcc \
                        git \
                        libffi-dev \
@@ -12,7 +13,8 @@ RUN apk add --no-cache bash \
                        py-cffi \
                        py-pip \
                        python-dev \
-                       openssh-client && \
+                       openssh-client \
+                       tar && \
     pip install -r /requirements.txt
 
 ENTRYPOINT [ "ansible-playbook" ]

@@ -91,7 +91,8 @@ jobs:
             -var 'flavor_bastion="ea762e25-7320-484d-b95d-747a1373c791"'
             -var 'floatingip_pool="Public"'
             -var 'external_net="113d4b08-0fc4-478c-9eae-4ecfb086e3f4"'
-            -var 'cluster_name="ci"'
+            -var 'cluster_name="ci-${CIRCLE_SHA1}"'
+            -var 'network_name="ci-${CIRCLE_SHA1}"'
             -var 'public_key_path=~/.ssh/id_rsa_ci.pub'
             contrib/terraform/openstack
       - persist_to_workspace:
