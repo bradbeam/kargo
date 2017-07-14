@@ -31,10 +31,13 @@ defaults: &defaults
 
 version: 2
 jobs:
-  setup_environment:
+  build:
     <<: *defaults
     steps:
       - checkout
+  setup_environment:
+    <<: *defaults
+    steps:
       - echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
       - echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
       - echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
