@@ -1,0 +1,81 @@
+version: 2
+jobs:
+  base:
+    docker:
+      - image: bradbeam/ansible:2.3.1.0
+        # environment:
+      working_directory: ~/kargo
+      steps:
+        - checkout
+        - echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
+        - echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
+        - echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
+        - echo $OPENRC > $HOME/.ssh/openstack.openrc
+        - chmod 400 $HOME/.ssh/id_rsa
+        - run:
+            name: Install terraform
+            command: |
+              curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
+              unzip terraform_0.9.11_linux_amd64.zip
+  create-gce:
+      - image: bradbeam/ansible:2.3.1.0
+        # environment:
+      working_directory: ~/kargo
+      steps:
+        - >
+          ansible-playbook tests/cloud_playbooks/create-gce.yml -i tests/local_inventory/hosts.cfg -c local
+          ${LOG_LEVEL}
+          -e cloud_image=${CLOUD_IMAGE}
+          -e cloud_region=${CLOUD_REGION}
+          -e gce_credentials_file=${HOME}/.ssh/gce.json
+          -e gce_project_id=${GCE_PROJECT_ID}
+          -e gce_service_account_email=${GCE_ACCOUNT}
+          -e cloud_machine_type=${CLOUD_MACHINE_TYPE}
+          -e inventory_path=${PWD}/inventory/inventory.ini
+          -e kube_network_plugin=${KUBE_NETWORK_PLUGIN}
+          -e mode=${CLUSTER_MODE}
+          -e test_id=${TEST_ID}
+          -e startup_script="'${STARTUP_SCRIPT}'"
+  create-openstack:
+    steps:
+      - run:
+          name: Provision environment on openstack
+          command: >
+            ./terraform apply
+            -state=contrib/terraform/openstack/terraform.tfstate
+            -var-file=contrib/terraform/openstack/kargo.tfvars
+            contrib/terraform/openstack
+      # Wait for apt-get upgrade to run
+      - run: sleep 60
+  ansible:
+    steps:
+      - run:
+          name: Run ansible playbook cluster.yml
+          command: >
+            ansible-playbook -i inventory/inventory.ini -b --become-user=root --private-key=${HOME}/.ssh/id_rsa -u $SSH_USER
+            ${SSH_ARGS}
+            ${LOG_LEVEL}
+            -e ansible_python_interpreter=${PYPATH}
+            -e ansible_ssh_user=${SSH_USER}
+            -e bootstrap_os=${BOOTSTRAP_OS}
+            -e cert_management=${CERT_MGMT:-script}
+            -e cloud_provider=gce
+            -e deploy_netchecker=true
+            -e download_localhost=${DOWNLOAD_LOCALHOST}
+            -e download_run_once=${DOWNLOAD_RUN_ONCE}
+            -e etcd_deployment_type=${ETCD_DEPLOYMENT}
+            -e kube_network_plugin=${KUBE_NETWORK_PLUGIN}
+            -e kubelet_deployment_type=${KUBELET_DEPLOYMENT}
+            -e local_release_dir=${PWD}/downloads
+            -e resolvconf_mode=${RESOLVCONF_MODE}
+            -e vault_deployment_type=${VAULT_DEPLOYMENT}
+            --limit "all:!fake_hosts"
+            cluster.yml
+
+workflows:
+  version: 2
+    build_openstack_and_test:
+      jobs:
+        - base
+        - create-openstack
+        - ansible
