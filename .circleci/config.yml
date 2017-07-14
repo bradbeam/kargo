@@ -42,7 +42,7 @@ jobs:
       - checkout
       - run:
           name: Generate temporary ssh keypair
-          command: ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+          command: ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_ci
       #- echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
       #- echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
       #- echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
@@ -92,6 +92,7 @@ jobs:
             -var 'floatingip_pool="Public"'
             -var 'external_net="113d4b08-0fc4-478c-9eae-4ecfb086e3f4"'
             -var 'cluster_name="ci"'
+            -var 'public_key_path=~/.ssh/id_rsa_ci.pub'
             contrib/terraform/openstack
       - persist_to_workspace:
           root: /root
