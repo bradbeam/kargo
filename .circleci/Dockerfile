@@ -11,7 +11,8 @@ RUN apk add --no-cache bash \
                        openssl-dev \
                        py-cffi \
                        py-pip \
-                       python-dev && \
+                       python-dev \
+                       openssh-client && \
     pip install -r /requirements.txt
 
 ENTRYPOINT [ "ansible-playbook" ]

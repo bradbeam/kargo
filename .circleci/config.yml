@@ -35,14 +35,11 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-  setup_environment:
-    <<: *defaults
-    steps:
-      - echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
-      - echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
-      - echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
-      - echo $OPENRC > $HOME/.ssh/openstack.openrc
-      - chmod 400 $HOME/.ssh/id_rsa
+      #- echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
+      #- echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
+      #- echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
+      #- echo $OPENRC > $HOME/.ssh/openstack.openrc
+      #- chmod 400 $HOME/.ssh/id_rsa
       - run:
           name: Install terraform
           command: |
@@ -131,6 +128,3 @@ workflows:
   build_openstack_and_test:
     jobs:
       - build
-      - setup_environment:
-          requires:
-            - build
