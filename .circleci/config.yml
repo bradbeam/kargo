@@ -59,7 +59,7 @@ jobs:
           name: pwd + ls
           command: pwd && ls -la
       - attach_workspace:
-          at: ~
+          at: $HOME
       - run:
           name: pwd + ls
           command: pwd && ls -la
