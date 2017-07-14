@@ -45,6 +45,15 @@ jobs:
           command: |
             curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
             unzip terraform_0.9.11_linux_amd64.zip
+  ansible_dry_run:
+    <<: *defaults
+    steps:
+      - run:
+          name: Create dummy inventory file
+          command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
+      - run:
+          name: Ansible syntax check
+          command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts ./cluster.yml
       # - persist_to_workspace:
       #   root: /tmp/workspace
       #   paths:
@@ -123,15 +132,7 @@ jobs:
   #     ETCD_DEPLOYMENT: rkt
   #     KUBELET_DEPLOYMENT: rkt
   #     STARTUP_SCRIPT: ""
-  ansible_dry_run:
-    <<: *defaults
-    steps:
-      - run:
-          name: Create dummy inventory file
-          command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
-      - run:
-          name: Ansible syntax check
-          command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts ./cluster.yml
+
 workflows:
   version: 2
   build_openstack_and_test:
