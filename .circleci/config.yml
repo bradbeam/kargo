@@ -49,9 +49,9 @@ jobs:
           name: pwd + ls
           command: pwd && ls -la
       - persist_to_workspace:
-          root: .
+          root: /root
           paths:
-            - /root
+            - .
   ansible_dry_run:
     <<: *defaults
     steps:
