@@ -27,7 +27,12 @@ defaults: &defaults
         VAULT_DEPLOYMENT: "docker"
         WEAVE_CPU_LIMIT: "100m"
         MAGIC: "ci check this"
-
+openstack_vars: &openstack_vars
+  environment:
+    TF_VAR_username: ${OS_USERNAME}
+    TF_VAR_password: ${OS_PASSWORD}
+    TF_VAR_tenant: ${OS_TENANT_NAME}
+    TF_VAR_auth_url: ${OS_AUTH_URL}
 
 version: 2
 jobs:
@@ -65,6 +70,7 @@ jobs:
           command: ansible-playbook --syntax-check --list-tasks -i ansible_syntax_hosts cluster.yml
   create-openstack:
     <<: *defaults
+    <<: *openstack_vars
     steps:
       - attach_workspace:
           at: /root
@@ -94,6 +100,7 @@ jobs:
           command: sleep 60
   destroy-openstack:
     <<: *defaults
+    <<: *openstack_vars
     steps:
       - attach_workspace:
           at: /root
