@@ -6,6 +6,7 @@ RUN apk add --no-cache bash \
                        curl \
                        gcc \
                        git \
+                       jq \
                        libffi-dev \
                        make \
                        musl-dev \
