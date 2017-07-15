@@ -103,7 +103,7 @@ resource "openstack_compute_instance_v2" "bastion" {
     }
 
     provisioner "local-exec" {
-	command = "sed s/USER/${var.ssh_user}/ contrib/terraform/openstack/ansible_bastion_template.txt | sed s/BASTION_ADDRESS/${element(openstack_networking_floatingip_v2.bastion.*.address, 0)}/ > group_vars/no-floating.yml"
+	command = "sed s/USER/${var.ssh_user}/ contrib/terraform/openstack/ansible_bastion_template.txt | sed s/BASTION_ADDRESS/${element(openstack_networking_floatingip_v2.bastion.*.address, 0)}/ > inventory/group_vars/no-floating.yml"
     }
 
     user_data = "#cloud-config\nmanage_etc_hosts: localhost\npackage_update: true\npackage_upgrade: true"
