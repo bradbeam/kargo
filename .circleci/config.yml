@@ -113,9 +113,13 @@ jobs:
               active_jobs=$(curl -s -H 'Accept: application/json' \
               "https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}?circle-token=${CIRCLE_PROJECT_API_TOKEN}&limit=100" | \
               jq '.[] | select((.workflows.workflow_id = "'${CIRCLE_WORKFLOW_ID}'") and (.status | test("running|pending|queued"))) | .build_num')
+              # Test if we're the only active job
               if [[ "${active_jobs}" == "${CIRCLE_BUILD_NUM}" || -z "${active_jobs}" ]]; then
                 ((count+=1))
               fi
+              # We'll wait for two iterations before breaking out of this watch loop
+              # to make sure we're not catching the inbetween phase of waiting for
+              # a job to get started/scheduled
               if (( ${count} == 2 )); then
                 break
               fi
