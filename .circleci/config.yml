@@ -116,7 +116,9 @@ jobs:
               if [[ "${active_jobs}" == "${CIRCLE_BUILD_NUM}" || -z "${active_jobs}" ]]; then
                 ((count+=1))
               fi
-              if (( ${count} == 2 ))
+              if (( ${count} == 2 )); then
+                break
+              fi
               sleep 10
             done
       - run:
