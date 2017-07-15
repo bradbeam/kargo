@@ -107,6 +107,7 @@ jobs:
       - run:
           name: Watch circleci for no running/pending/queued tasks
           command: |
+            set -x
             while true; do
               active_jobs=$(curl -s -H 'Accept: application/json' \
               "https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}?circle-token=${CIRCLE_PROJECT_API_TOKEN}&limit=100" | \
