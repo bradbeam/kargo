@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: ~/kargo
   docker:
-    - image: bradbeam/ansible:2.3.1.0-1
+    - image: bradbeam/ansible:2.3.1.0-2
       environment:
         GCE_USER: travis
         OS_USER: ubuntu
