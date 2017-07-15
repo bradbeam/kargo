@@ -111,7 +111,7 @@ jobs:
               active_jobs=$(curl -s -H 'Accept: application/json' \
               "https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}?circle-token=${CIRCLE_PROJECT_API_TOKEN}&limit=100" | \
               jq '.[] | select((.workflows.workflow_id = "'${CIRCLE_WORKFLOW_ID}'") and (.status | test("running|pending|queued"))) | .build_num,.status')
-              if [ "${active_jobs}" == "${CIRCLE_BUILD_NUM}" || -z "${active_jobs}" ]; then
+              if [[ "${active_jobs}" == "${CIRCLE_BUILD_NUM}" || -z "${active_jobs}" ]]; then
                 break
               fi
             done
