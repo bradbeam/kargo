@@ -116,6 +116,7 @@ jobs:
       - run:
           name: Watch circleci for no running/pending/queued tasks
           command: |
+            set -x
             count=0
             while true; do
               active_jobs=$(curl -s -H 'Accept: application/json' \
