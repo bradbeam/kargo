@@ -84,10 +84,6 @@ jobs:
       - attach_workspace:
           at: /root
       - run:
-          name: Initialze GCS backend for terraform
-          command: >
-            ./terraform init -
-      - run:
           name: Provision environment on openstack
           command: >
             ./terraform apply
