@@ -116,7 +116,6 @@ jobs:
       - run:
           name: Watch circleci for no running/pending/queued tasks
           command: |
-            set -x
             count=0
             while true; do
               active_jobs=$(curl -s -H 'Accept: application/json' \
@@ -140,6 +139,12 @@ jobs:
     steps:
       - attach_workspace:
           at: /root
+      - run:
+          name: pwd + ls
+          command: pwd && ls -la
+      - run:
+          name: find tfstate
+          command: find . -name "*.tfstate" -exec ls -l {} \; 
       - run:
           name: Destroy environment on openstack
           command: >
