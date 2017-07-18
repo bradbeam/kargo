@@ -52,9 +52,16 @@ jobs:
           command: |
             curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
             unzip terraform_0.9.11_linux_amd64.zip
-      - run:
-          name: pwd + ls
-          command: pwd && ls -la
+      # - run:
+      #     name: Create terraform remote state file
+      #     command: >
+      #       echo -e "terraform {\n  backend \"gcs\" {\n    bucket  = \"kubespray-ci-state\"\n    path    = \"ci/${CIRCLE_SHA1}.tfstate\"\n    project = \"kargo-ci\"\n  }\n}" > remote.tfvars
+      # - run:
+      #     name: Render gce service account
+      #     command: echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
+      # - run:
+      #     name: pwd + ls
+      #     command: pwd && ls -la
       - persist_to_workspace:
           root: /root
           paths:
@@ -77,6 +84,10 @@ jobs:
       - attach_workspace:
           at: /root
       - run:
+          name: Initialze GCS backend for terraform
+          command: >
+            ./terraform init -
+      - run:
           name: Provision environment on openstack
           command: >
             ./terraform apply
@@ -95,6 +106,10 @@ jobs:
             -var 'network_name="ci-'${CIRCLE_SHA1}'"'
             -var 'public_key_path=~/.ssh/id_rsa_ci.pub'
             contrib/terraform/openstack
+      - persist_to_workspace:
+          root: /root
+          paths:
+            - .
       - run:
           name: Wait for apt-get update to run
           command: sleep 60
@@ -102,8 +117,6 @@ jobs:
     <<: *defaults
     <<: *openstack_vars
     steps:
-      - attach_workspace:
-          at: /root
       - run:
           name: Watch circleci for no running/pending/queued tasks
           command: |
@@ -125,6 +138,8 @@ jobs:
               fi
               sleep 10
             done
+      - attach_workspace:
+          at: /root
       - run:
           name: Destroy environment on openstack
           command: >
