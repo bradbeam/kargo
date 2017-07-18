@@ -40,18 +40,12 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run:
-          name: Generate temporary ssh keypair
-          command: ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa_ci
+
       #- echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/id_rsa
       #- echo $GCE_PEM_FILE | base64 -d > $HOME/.ssh/gce
       #- echo $GCE_CREDENTIALS > $HOME/.ssh/gce.json
       #- chmod 400 $HOME/.ssh/id_rsa
-      - run:
-          name: Install terraform
-          command: |
-            curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
-            unzip terraform_0.9.11_linux_amd64.zip
+
       # - run:
       #     name: Create terraform remote state file
       #     command: >
@@ -69,8 +63,7 @@ jobs:
   ansible_dry_run:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: /root
+      - checkout
       - run:
           name: Create dummy inventory file
           command: echo -e "[local]\n127.0.0.1" > ansible_syntax_hosts
@@ -81,8 +74,20 @@ jobs:
     <<: *defaults
     <<: *openstack_vars
     steps:
-      - attach_workspace:
-          at: /root
+      - checkout
+      - run:
+          name: Generate temporary ssh keypair
+          command: |
+            if [ ! -f ~/.ssh/id_rsa_ci ]; then
+              ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa_ci
+            fi
+      - run:
+          name: Install terraform
+          command: |
+            if [ ! -f ./terraform ]; then
+              curl -O https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip
+              unzip terraform_0.9.11_linux_amd64.zip
+            fi
       - run:
           name: Provision environment on openstack
           command: >
@@ -108,7 +113,7 @@ jobs:
             - .
       - run:
           name: Wait for apt-get update to run
-          command: sleep 60
+          command: sleep 30
   wait-for-jobs:
     <<: *defaults
     <<: *openstack_vars
@@ -144,7 +149,7 @@ jobs:
           command: pwd && ls -la
       - run:
           name: find tfstate
-          command: find . -name "*.tfstate" -exec ls -l {} \; 
+          command: find . -name "*.tfstate" -exec ls -l {} \;
       - run:
           name: Destroy environment on openstack
           command: >
