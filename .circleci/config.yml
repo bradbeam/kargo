@@ -149,7 +149,7 @@ jobs:
           command: pwd && ls -la
       - run:
           name: find tfstate
-          command: find . -name "*.tfstate" -exec ls -l {} \;
+          command: find /root -name "*.tfstate" -exec ls -l {} \;
       - run:
           name: Destroy environment on openstack
           command: >
