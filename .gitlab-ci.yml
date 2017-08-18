@@ -18,8 +18,7 @@ variables:
 # us-west1-a
 
 before_script:
-    - pip install ansible==2.3.0
-    - pip install netaddr
+    - pip install -r requirements.txt
     - pip install apache-libcloud==0.20.1
     - pip install boto==2.9.0
     - mkdir -p /.ssh
@@ -641,6 +640,7 @@ syntax-check:
     - ansible-playbook -i inventory/local-tests.cfg -u root -e ansible_ssh_user=root  -b --become-user=root upgrade-cluster.yml -vvv  --syntax-check
     - ansible-playbook -i inventory/local-tests.cfg -u root -e ansible_ssh_user=root  -b --become-user=root reset.yml -vvv  --syntax-check
     - ansible-playbook -i inventory/local-tests.cfg -u root -e ansible_ssh_user=root  -b --become-user=root extra_playbooks/upgrade-only-k8s.yml -vvv  --syntax-check
+    - yamllint .
   except: ['triggers', 'master']
 
 tox-inventory-builder:
