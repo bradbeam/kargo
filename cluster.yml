@@ -42,113 +42,113 @@
     - role: kubernetes/preinstall
       tags:
         - preinstall
-    - role: docker
-      tags:
-        - docker
-    - role: rkt
-      tags:
-        - rkt
-      when: "'rkt' in [etcd_deployment_type, kubelet_deployment_type, vault_deployment_type]"
-
+#    - role: docker
+#      tags:
+#        - docker
+#    - role: rkt
+#      tags:
+#        - rkt
+#      when: "'rkt' in [etcd_deployment_type, kubelet_deployment_type, vault_deployment_type]"
+#
 # Install temporary vault
 ## used to gen certs for permanent vault
-- hosts: etcd:k8s-cluster:vault
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-      when: "cert_management == 'vault'"
-    - role: vault
-      tags:
-        - vault
-      vault_bootstrap: true
-      when: "cert_management == 'vault'"
-
-# Install etcd and do initial cluster setup
-- hosts: etcd
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: etcd
-      tags:
-        - etcd
-      etcd_cluster_setup: true
-
-# Deploy etcd certs to necessary nodes
-- hosts: k8s-cluster
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: etcd
-      tags:
-        - etcd
-      etcd_cluster_setup: false
-
-# Configure permanent vault
-## Uses SSL backed etcd as vault backend
-- hosts: etcd:k8s-cluster:vault
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: vault
-      tags:
-        - vault
-      when: "cert_management == 'vault'"
-
-# Configure kubelet and network plugin
-- hosts: k8s-cluster
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: kubernetes/node
-      tags:
-        - node
-    - role: network_plugin
-      tags:
-        - network
-
-# Configure master nodes
-- hosts: kube-master
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: kubernetes/master
-      tags:
-        - master
-    - role: kubernetes-apps/network_plugin
-      tags:
-        - network
-    - role: kubernetes-apps/policy_controller
-      tags:
-        - policy-controller
-
-# Set up calico route reflector
-- hosts: calico-rr
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: network_plugin/calico/rr
-      tags:
-        - network
-
-# Reset any resolvconf/dns changes
-- hosts: k8s-cluster
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: dnsmasq
-      tags:
-        - dnsmasq
-      when: "dns_mode == 'dnsmasq_kubedns'"
-    - role: kubernetes/preinstall
-      tags:
-        - resolvconf
-      when: "dns_mode != 'none' and resolvconf_mode == 'host_resolvconf'"
-
-# Deploy any additional kubernetes apps ( helm, EFK, etc )
-- hosts: kube-master[0]
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  roles:
-    - role: kubespray-defaults
-    - role: kubernetes-apps
-      tags:
-        - apps
+#- hosts: etcd:k8s-cluster:vault
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#      when: "cert_management == 'vault'"
+#    - role: vault
+#      tags:
+#        - vault
+#      vault_bootstrap: true
+#      when: "cert_management == 'vault'"
+#
+## Install etcd and do initial cluster setup
+#- hosts: etcd
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: etcd
+#      tags:
+#        - etcd
+#      etcd_cluster_setup: true
+#
+## Deploy etcd certs to necessary nodes
+#- hosts: k8s-cluster
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: etcd
+#      tags:
+#        - etcd
+#      etcd_cluster_setup: false
+#
+## Configure permanent vault
+### Uses SSL backed etcd as vault backend
+#- hosts: etcd:k8s-cluster:vault
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: vault
+#      tags:
+#        - vault
+#      when: "cert_management == 'vault'"
+#
+## Configure kubelet and network plugin
+#- hosts: k8s-cluster
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: kubernetes/node
+#      tags:
+#        - node
+#    - role: network_plugin
+#      tags:
+#        - network
+#
+## Configure master nodes
+#- hosts: kube-master
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: kubernetes/master
+#      tags:
+#        - master
+#    - role: kubernetes-apps/network_plugin
+#      tags:
+#        - network
+#    - role: kubernetes-apps/policy_controller
+#      tags:
+#        - policy-controller
+#
+## Set up calico route reflector
+#- hosts: calico-rr
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: network_plugin/calico/rr
+#      tags:
+#        - network
+#
+## Reset any resolvconf/dns changes
+#- hosts: k8s-cluster
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: dnsmasq
+#      tags:
+#        - dnsmasq
+#      when: "dns_mode == 'dnsmasq_kubedns'"
+#    - role: kubernetes/preinstall
+#      tags:
+#        - resolvconf
+#      when: "dns_mode != 'none' and resolvconf_mode == 'host_resolvconf'"
+#
+## Deploy any additional kubernetes apps ( helm, EFK, etc )
+#- hosts: kube-master[0]
+#  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+#  roles:
+#    - role: kubespray-defaults
+#    - role: kubernetes-apps
+#      tags:
+#        - apps

@@ -10,14 +10,6 @@
 
 - include: setup-pipelining.yml
 
-- name: check if atomic host
-  stat:
-    path: /run/ostree-booted
-  register: ostree
-
-- set_fact:
-    is_atomic: "{{ ostree.stat.exists }}"
-
 - name: Gather nodes hostnames
   setup:
     gather_subset: '!all'

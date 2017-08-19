@@ -97,3 +97,9 @@
 
 - include: set_resolv_facts.yml
   tags: [bootstrap-os, resolvconf, facts]
+
+- set_fact:
+    bin_dir: "/opt/bin"
+  when: ansible_os_family in ["CoreOS", "Container Linux by CoreOS"]
+  tags: facts
+
