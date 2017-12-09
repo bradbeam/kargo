@@ -25,6 +25,8 @@
     body:
       secret_shares: 1
       secret_threshold: 1
+  retries: 4
+  delay: "{{ retry_stagger | random + 3 }}"
   register: vault_temp_init
 
 # NOTE: vault_headers and vault_url are used by subsequent issue calls
